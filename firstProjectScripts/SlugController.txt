@@ -1,0 +1,143 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+
+
+public class SlagController : MonoBehaviour
+{
+    float DetailOfVector_X;
+    float DetailOfVector_Z;
+    float Progress;
+    float StepJump = 0.05f;
+    int RandomAizer;
+    private Vector3 StartPosition;
+    private Vector3 EndPosition;
+    public float TimeJumpDelay = 1.0f;
+    bool DeathSlug;
+    private float DirectionOfTravel;
+    private Transform AimNew;
+    Vector3 lookDirection;
+    private Vector3 PrimordialScale = new Vector3(30f, 30f, 30f);
+    float rotation;
+    bool ToJump = false;
+    float TimeJumpDelayСounter;
+    public float JumpDistance = 1.0f;
+    Vector3 newDir;
+    int FpsCounter;
+    float CurrentHeight;
+    float MetaHeight = 0.5f;
+    float jijaHeight;
+    float jija;
+    Collider col;
+    GameObject player;
+    Text pointsText;
+    bool dt = false;
+    AudioSource audioSource;
+
+
+
+
+    void Start()
+    {
+        audioSource = GetComponent<AudioSource>();
+        pointsText = GameObject.FindObjectOfType<Text>();
+        AimNew = GameObject.FindGameObjectWithTag("Player").transform;
+        player = GameObject.FindGameObjectWithTag("Player");
+        TimeJumpDelayСounter = TimeJumpDelay;
+        jijaHeight = transform.localScale.y;
+        jija = transform.localScale.z;
+        col = GetComponent<Collider>();
+    }
+    void Update()
+    {
+        if (!ToJump)
+        {
+            TimeJumpDelayСounter -= Time.deltaTime;
+        }
+        if (!ToJump && (TimeJumpDelayСounter < 0) && !DeathSlug)
+        {
+            transform.right = AimNew.transform.position - transform.position;
+            DetailOfVector_X = transform.position.x + (float)(System.Math.Sin((double)(transform.rotation.eulerAngles.y + 90.0f) * 3.14159265 / 180.0) * (double)JumpDistance);
+            DetailOfVector_Z = transform.position.z + (float)(System.Math.Cos((double)(transform.rotation.eulerAngles.y + 90.0f) * 3.14159265 / 180.0) * (double)JumpDistance);
+            EndPosition = new Vector3(DetailOfVector_X, 0.0f, DetailOfVector_Z);
+            StartPosition = transform.position;
+            transform.rotation = Quaternion.Euler(-90.0f, transform.rotation.y, 0.0f);
+            TimeJumpDelayСounter = TimeJumpDelay;
+            ToJump = true;
+        }
+    }
+    void FixedUpdate()
+    {
+        if (ToJump && !DeathSlug)
+        {
+            if ((double)Progress < 0.5)
+            {
+                CurrentHeight += (MetaHeight * MetaHeight);
+                MetaHeight -= StepJump;
+            }
+            else
+            {
+                CurrentHeight -= (MetaHeight * MetaHeight);
+                MetaHeight += StepJump;
+            }
+            transform.position = Vector3.Lerp(StartPosition, EndPosition, Progress);
+            transform.position = new Vector3(transform.position.x, CurrentHeight, transform.position.z);
+            Progress += StepJump;
+            if (Progress > 1f)
+            {
+                audioSource.Play();
+                transform.localScale = PrimordialScale;
+                Progress = 0f;
+                MetaHeight = 0.5f;
+                ToJump = false;
+                CurrentHeight = 0.0f;
+                transform.position = new Vector3(transform.position.x, CurrentHeight, transform.position.z);
+            }
+        }
+        if (!ToJump && !DeathSlug)
+        {
+            FpsCounter++;
+            if (FpsCounter > 20)
+            {
+                if (FpsCounter == 40)
+                {
+                    FpsCounter = 0;
+                }
+                transform.localScale -= new Vector3(0.2f, 0.2f, -0.2f);
+            }
+            if (FpsCounter < 20)
+            {
+                transform.localScale += new Vector3(0.2f, 0.2f, -0.2f);
+            }
+        }
+        if (DeathSlug)
+        {
+            jija += StepJump * 8;
+            jijaHeight -= StepJump * 8;
+            transform.localScale = new Vector3(jija, jija, jijaHeight);
+            transform.position = new Vector3(transform.position.x, 0.0f, transform.position.z);
+        }
+    }
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.tag == "Sword")
+        {
+            UnityEngine.Object.Destroy(gameObject, 1f);
+            if (!DeathSlug)
+            {
+                PlayerController playerController = player.GetComponent<PlayerController>();
+                playerController.Slugquantity -= 1;
+                pointsText.text = (int.Parse(pointsText.text) + 1).ToString();
+                if (PlayerPrefs.GetInt("Record") < int.Parse(pointsText.text))
+                {
+                    PlayerPrefs.SetInt("Record", int.Parse(pointsText.text));
+                }
+            }
+            col.GetComponent<Collider>();
+            col.enabled = false;
+            DeathSlug = true;
+        }
+    }
+}

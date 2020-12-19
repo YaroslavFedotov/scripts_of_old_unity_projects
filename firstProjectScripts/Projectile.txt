@@ -1,0 +1,38 @@
+using System;
+using UnityEngine;
+
+public class Projectile : MonoBehaviour
+{
+	private Rigidbody2D rigidbody2d;
+
+	public int timeDestroy = 1;
+
+	private void Awake()
+	{
+		this.rigidbody2d = base.GetComponent<Rigidbody2D>();
+	}
+
+	private void Update()
+	{
+		this.timeDestroy++;
+		if (this.timeDestroy > 30)
+		{
+			UnityEngine.Object.Destroy(base.gameObject);
+		}
+	}
+
+	public void Launch(Vector2 direction, float force)
+	{
+		this.rigidbody2d.AddForce(direction * force);
+	}
+
+	private void OnCollisionEnter2D(Collision2D other)
+	{
+		Enemy component = other.collider.GetComponent<Enemy>();
+		if (component != null)
+		{
+			component.Fix();
+		}
+		UnityEngine.Object.Destroy(base.gameObject);
+	}
+}

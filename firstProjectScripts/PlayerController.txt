@@ -1,0 +1,294 @@
+using System;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using UnityEngine.Advertisements;
+
+public class PlayerController : MonoBehaviour
+{
+	private float horizontal;
+	private float vertical;
+	private float rotation;
+	private Vector3 lookDirection = new Vector3(0.0f, 0.0f, 0.0f);
+	private float invincibleTimer;
+	private bool isInvincible;
+	public Joystick joystick;
+	public float speed = 4f;
+	public int maxHealth = 30;
+	private Rigidbody rigidbody;
+	private Vector3 currentInput;
+	float Speed;
+	Animator animator;
+	bool AttackСheck = false;
+	bool ShieldСheck = false;
+	bool СheckAnimations = false;
+	bool Death = false;
+	float CurrentDeath;
+	bool stoper = false;
+	public GameObject Slug;
+	float angle = 0f;
+	Vector3 axis;
+	public float SlagSpawnDelay = 3.0f;
+	public float SlagSpawnTimer;
+	public int Slugquantity = 0;
+	public int SlugMax;
+	float dtimer = 3.0f;
+	public Image fon;
+	bool FonOn = false;
+	AudioSource audioSource;
+	bool IsShag = true;
+	bool IsZvuk = true;
+	float ShagDelay;
+	float ShagTimer;
+	public AudioClip mech1;
+    public AudioClip mech2;
+	public AudioClip shag;
+	public AudioClip smert;
+    int reklam;
+
+
+
+	private void Start()
+	{
+		if (Advertisement.isSupported)
+        {
+			Advertisement.Initialize("3835223", false);
+		}
+		audioSource = GetComponent<AudioSource>();
+		AudioListener.volume = PlayerPrefs.GetFloat("Volume") / 100.0f;
+		animator = GetComponent<Animator>();
+		rigidbody = GetComponent<Rigidbody>();
+		SlagSpawnTimer = SlagSpawnDelay;
+		SlugMax = (int)(6 + System.Math.Round((PlayerPrefs.GetFloat("NumberOfEnemies") * 10.0f), 0));
+		reklam = PlayerPrefs.GetInt("reklam");
+	}
+
+	private void Update()
+	{
+		if (!Death && !СheckAnimations)
+		{
+
+
+			SlagSpawnTimer -= Time.deltaTime;
+			if (Slugquantity < SlugMax)
+			{
+				if (SlagSpawnTimer < 0)
+				{
+					SlagSpawnTimer = SlagSpawnDelay;
+					if (transform.position.x > -22.0f)
+					{
+						Instantiate(Slug, new Vector3(-44.0f, 0.0f, -15.0f), Quaternion.identity);
+						Slugquantity++;
+					}
+					if (transform.position.x < -22.0f)
+					{
+						Instantiate(Slug, new Vector3(0.0f, 0.0f, -15.0f), Quaternion.identity);
+						Slugquantity++;
+					}
+					if (transform.position.z > -15.0f)
+					{
+						Instantiate(Slug, new Vector3(-22.0f, 0.0f, -36.0f), Quaternion.identity);
+						Slugquantity++;
+					}
+					if (transform.position.z < -15.0f)
+					{
+						Instantiate(Slug, new Vector3(-22.0f, 0.0f, 7.0f), Quaternion.identity);
+						Slugquantity++;
+	      			}
+				}
+			}
+
+
+
+			if (isInvincible)
+			{
+				invincibleTimer -= Time.deltaTime;
+				if (invincibleTimer < 0f)
+				{
+					isInvincible = false;
+				}
+			}
+			horizontal = joystick.Horizontal;
+			vertical = joystick.Vertical;
+			Speed = Math.Abs(horizontal) + Math.Abs(vertical);
+			if (Speed > 1)
+			{
+				Speed = 1;
+			}
+			animator.SetFloat("Speed", Speed);
+			if (!СheckAnimations)
+			{
+				animator.Play("Blend Tree");
+			}
+
+			Vector3 vector = new Vector3(horizontal, 0.0f, vertical);
+			currentInput = vector;
+			if (!Mathf.Approximately(vector.x, 0f) || !Mathf.Approximately(vector.z, 0f))
+			{
+				lookDirection.Set(vector.x, vector.y, vector.z);
+				lookDirection.Normalize();
+			}
+			rotation = Mathf.Atan2(lookDirection.x, lookDirection.z) * 57.29578f;
+			transform.rotation = Quaternion.Euler(0f, rotation, 0f);
+		}
+		if (СheckAnimations)
+        {
+			currentInput = new Vector3(0.0f, 0.0f, 0.0f);
+		}
+	}
+
+	private void FixedUpdate()
+	{
+		if ((Speed > 0.845f) && (Speed < 1.0f))
+        {
+			ShagDelay = 0.25f;
+		}
+		if ((Speed > 0.580f) && (Speed < 0.845f))
+		{
+			ShagDelay = 0.40f;
+		}
+		if ((Speed > 0.0f) && (Speed < 0.580f))
+		{
+			ShagDelay = 0.80f;
+		}
+		if (Speed > 0)
+		{
+			ShagTimer -= Time.deltaTime;
+			if (IsShag)
+			{
+				if (ShagTimer < 0)
+				{
+					audioSource.clip = shag;
+				    audioSource.Play();
+					
+					ShagTimer = ShagDelay;
+				}
+
+			}
+		}
+
+		if (FonOn)
+        {
+			fon.transform.localScale = new Vector3(fon.transform.localScale.x - Time.deltaTime / 6.5f, fon.transform.localScale.y - Time.deltaTime / 6.5f, fon.transform.localScale.z);
+			if (fon.transform.localScale.x < 0.1f)
+            {
+				fon.transform.localScale = new Vector3(0.0f, 0.0f, 0.0f);
+				FonOn = false;
+			}
+		}
+	    if (!Death)
+		{
+			Vector3 vector = new Vector3(rigidbody.position.x, 0.0f, rigidbody.position.z);
+			vector += currentInput * speed * Time.deltaTime;
+			rigidbody.MovePosition(vector);
+
+		}
+		else
+		{
+
+			dtimer -= Time.deltaTime;
+			if (dtimer < 0)
+            {
+				if (PlayerPrefs.GetInt("AutoRetry") == 0)
+				{
+					reklam++;
+					PlayerPrefs.SetInt("reklam", reklam);
+
+					if (PlayerPrefs.GetInt("reklam") == 2)
+					{
+						PlayerPrefs.SetInt("reklam", 0);
+						if (Advertisement.IsReady())
+						{
+							Advertisement.Show("video");
+						}
+					}
+					SceneManager.LoadScene("Menu");
+				}
+				else
+                {
+					reklam++;
+					PlayerPrefs.SetInt("reklam", reklam);
+					if (PlayerPrefs.GetInt("reklam") == 2)
+					{
+						PlayerPrefs.SetInt("reklam", 0);
+						if (Advertisement.IsReady())
+						{
+							Advertisement.Show("video");
+						}
+					}
+					SceneManager.LoadScene("Arena");
+				}
+			}
+			CurrentDeath -= Time.deltaTime / 10;
+			animator.SetFloat("Speed", 0.0f);
+			transform.rotation.ToAngleAxis(out angle, out axis);
+			if ((axis.x > -3) && (axis.x < 3))
+			{
+				transform.position = new Vector3(transform.position.x, transform.position.y + CurrentDeath / 30, transform.position.z);
+				stoper = true;
+			}
+		}
+	}
+
+	private void OnCollisionEnter(Collision collision)
+	{
+		if (collision.gameObject.tag == "Slug")
+		{
+			Death = true;
+			DeathOn();
+		}
+	}
+	public void DeathOn()
+	{
+		if (!IsZvuk)
+		{
+			audioSource.clip = smert;
+			audioSource.Play();
+			IsZvuk = true;
+		}
+		IsShag = false;
+		СheckAnimations = true;
+		animator.Play("Die_SwordShield");
+	}
+	public void HitOn()
+	{
+		if (!Death)
+		{
+			if (!IsZvuk)
+			{
+				audioSource.clip = mech1;
+				audioSource.Play();
+				IsZvuk = true;
+			}
+			IsShag = false;
+			СheckAnimations = true;
+			animator.Play("NormalAttack01_SwordShield");
+		}
+	}
+	public void ShieldOn()
+	{
+		if (!Death && !FonOn)
+		{
+			if (!IsZvuk)
+			{
+				audioSource.clip = mech2;
+				audioSource.Play();
+				IsZvuk = true;
+			}
+			IsShag = false;
+			fon.transform.localScale = new Vector3(0.9f, 0.9f, fon.transform.localScale.z);
+			FonOn = true;
+			СheckAnimations = true;
+			animator.Play("NormalAttack02_SwordShield");
+		}
+	}
+    public void AnimationsOff()
+	{
+		IsShag = true;
+		IsZvuk = false;
+		СheckAnimations = false;
+		animator.Play("Idle_SwordShield");
+		
+
+	}
+}

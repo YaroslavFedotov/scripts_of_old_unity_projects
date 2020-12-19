@@ -1,0 +1,25 @@
+using System;
+using UnityEngine;
+
+public class CameraController : MonoBehaviour
+{
+	public Vector2 offset = new Vector2(2f, 1f);
+	Vector3 EndPosition;
+	Vector3 NewPosition;
+	private Transform player;
+
+	private void Start()
+	{
+		player = GameObject.FindGameObjectWithTag("Player").transform;
+	}
+
+	private void Update()
+	{
+			EndPosition = new Vector3(player.transform.position.x, player.transform.position.y + 8, player.transform.position.z);
+	}
+	private void FixedUpdate()
+    {
+			Vector3 NewPosition = Vector3.Lerp(transform.position, EndPosition, Time.deltaTime + 0.03f);
+			transform.position = new Vector3(NewPosition.x, 6.26f, NewPosition.z);
+	}
+}

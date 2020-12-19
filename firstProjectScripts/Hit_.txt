@@ -1,0 +1,35 @@
+using System;
+using UnityEngine;
+
+public class Hit_ : MonoBehaviour
+{
+	public bool On;
+
+	public float HitTimer;
+
+	public float HitDelay = 0.3f;
+
+	private int DD;
+
+	private void Start()
+	{
+		this.HitTimer = this.HitDelay;
+	}
+
+	private void Update()
+	{
+		if (this.HitTimer < 0f)
+		{
+			this.On = false;
+			return;
+		}
+		this.HitTimer -= Time.deltaTime;
+	}
+
+	public void TaskOnClick()
+	{
+		this.On = true;
+		this.HitTimer = this.HitDelay;
+		this.DD++;
+	}
+}
