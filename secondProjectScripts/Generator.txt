@@ -1,0 +1,112 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Reflection.Emit;
+using System.Security.Cryptography;
+using UnityEngine;
+
+public class Generator  MonoBehaviour
+{
+    public int VerticalMax;
+    public int HorizontalMax;
+    public float DistanceBetweenAsteroids;
+    public GameObject Asteroid_1;
+    public GameObject Asteroid_2;
+    public GameObject Asteroid_3;
+    public GameObject Asteroid_4;
+    public GameObject Asteroid_5;
+    public GameObject pers;
+    public GameObject Bonus;
+    public GameObject Buff;
+    int[,,] AsteroidArr;
+    float PlayerPositionX;
+    float PlayerPositionY;
+    float PlayerPositionZ;
+    private float CurrentDelayIteration;
+    public float DelayIteration;
+    public float BonusChance;
+    public float BuffChance;
+    Transform _transform;
+    int gumno;
+    public double ProbabilityOfOccurrence;
+    public int Advance;
+    private float Inst_X;
+    private float Inst_Y;
+    private float Inst_Z;
+    private Quaternion _rotation;
+    private float AsteroidVariant;
+    private SpaceshipController _spaceshipController;
+
+    void Start()
+    {
+        _spaceshipController = pers.GetComponentSpaceshipController();
+        AsteroidArr = new int[HorizontalMax, VerticalMax, 2];
+        _transform = gameObject.GetComponentTransform();
+    }
+
+    void FixedUpdate()
+    {
+        CurrentDelayIteration += Time.deltaTime;
+        if ((CurrentDelayIteration  DelayIteration) && (!_spaceshipController.DeathOn))
+        {
+            CurrentDelayIteration = 0.0f;
+            GenerationIteration();
+        }
+    }
+
+    void GenerationIteration()
+    {
+        for(int q = 0; q  HorizontalMax; q++)
+        {
+            for (int w = 0; w  VerticalMax; w++)
+            {
+                if (UnityEngine.Random.Range(0.0f, 1.0f)  ProbabilityOfOccurrence)
+                {
+                    AsteroidArr[q, w, 0] = (int)((HorizontalMax - 1)  2  DistanceBetweenAsteroids + _transform.position.x - DistanceBetweenAsteroids  q);
+                    AsteroidArr[q, w, 1] = (int)((VerticalMax - 1)  2  DistanceBetweenAsteroids + _transform.position.y - DistanceBetweenAsteroids  w);
+                    Inst_X = (float)AsteroidArr[q, w, 0] + UnityEngine.Random.Range(-(DistanceBetweenAsteroids  5), DistanceBetweenAsteroids  5);
+                    Inst_Y = (float)AsteroidArr[q, w, 1] + UnityEngine.Random.Range(-(DistanceBetweenAsteroids  5), DistanceBetweenAsteroids  5);
+                    Inst_Z = _transform.position.z + Advance;
+                    _rotation = Quaternion.Euler(UnityEngine.Random.Range(-180, 180), UnityEngine.Random.Range(-180, 180), UnityEngine.Random.Range(-180, 180));
+                    AsteroidVariant = UnityEngine.Random.Range(0.0f, 1.0f);
+                    if (AsteroidVariant  0.0f && AsteroidVariant  BonusChance)
+                    {
+                        Instantiate(Bonus, new Vector3(Inst_X, Inst_Y, Inst_Z), Quaternion.identity);
+                    }
+                    else
+                    {
+                        if (AsteroidVariant  0.0f && AsteroidVariant  0.2f)
+                        {
+                            Instantiate(Asteroid_1, new Vector3(Inst_X, Inst_Y, Inst_Z), _rotation);
+                        }
+                    }
+
+                    if (AsteroidVariant  0.2f && AsteroidVariant  0.2f + BuffChance)
+                    {
+                        Instantiate(Buff, new Vector3(Inst_X, Inst_Y, Inst_Z), Quaternion.identity);
+                    }
+                    else
+                    {
+                        if (AsteroidVariant  0.2f && AsteroidVariant  0.4f)
+                        {
+                            Instantiate(Asteroid_2, new Vector3(Inst_X, Inst_Y, Inst_Z), _rotation);
+                        }
+                    }
+                    if (AsteroidVariant  0.4f && AsteroidVariant  0.6f)
+                    {
+                        Instantiate(Asteroid_3, new Vector3(Inst_X, Inst_Y, Inst_Z), _rotation);
+                    }
+                    if (AsteroidVariant  0.6f && AsteroidVariant  0.8f)
+                    {
+                        Instantiate(Asteroid_4, new Vector3(Inst_X, Inst_Y, Inst_Z), _rotation);
+                    }
+                    if (AsteroidVariant  0.8f && AsteroidVariant  1.0f)
+                    {
+                        Instantiate(Asteroid_5, new Vector3(Inst_X, Inst_Y, Inst_Z), _rotation);
+                    }
+                }
+            }
+        }
+    } 
+}

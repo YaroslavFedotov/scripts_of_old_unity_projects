@@ -1,0 +1,34 @@
+using System.Collections;
+using System.Collections.Generic;
+using System.Threading;
+using UnityEngine;
+
+public class CameraController : MonoBehaviour
+{
+
+    public GameObject pers;
+    private Transform _transform;
+    private SpaceshipController _spaceshipController;
+    private float CameraPosition_X;
+    private float CameraPosition_Y;
+    private float CameraPosition_Z;
+    void Start()
+    {
+        _transform = GetComponent<Transform>();
+        _spaceshipController = pers.GetComponent<SpaceshipController>();
+    }
+
+    void Update()
+    {
+        if (!_spaceshipController.DeathOn)
+        {
+            if (pers != null)
+            {
+                CameraPosition_X = pers.transform.position.x - 0.05f;
+                CameraPosition_Y = pers.transform.position.y + 4.9f;
+                CameraPosition_Z = pers.transform.position.z - 7.0f;
+               _transform.position = new Vector3(CameraPosition_X, CameraPosition_Y, CameraPosition_Z);
+            }
+        }
+    }
+}

@@ -1,0 +1,117 @@
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Reflection;
+using System.Threading;
+using UnityEngine;
+
+
+public class SpaceshipController : MonoBehaviour
+{
+    public GameObject laser;
+    public GameObject Gun_1;
+    public GameObject Gun_2;
+    private Rigidbody _rigidbody;
+    private Transform _transform;
+    private Quaternion TargetRotation;
+    private Vector3 PosStandard;
+    public Joystick joystick;
+    public float InhibitionRotate;
+    public float ViewingAngle;
+    public float Speed;
+    ParticleSystem _explosion;
+    public bool DeathOn;
+    private float Z_Old;
+    private float H_Old;
+    private float ZRotation;
+    Renderer rend;
+    Renderer rend_Gun_1;
+    Renderer rend_Gun_2;
+    Color _color;
+    public Material _material;
+    public Material _alphaMaterial;
+    bool BuffOn;
+    float BuffTimer = 10.0f;
+    float СurrentBuffTimer;
+    public Generator _generator;
+    BoxCollider boxCollider;
+    public GameObject _smert;
+
+
+
+    void Start()
+    {
+        boxCollider = GetComponent<BoxCollider>();
+        _explosion = GameObject.FindGameObjectWithTag("Explosion").GetComponent<ParticleSystem>();
+        _transform = GetComponent<Transform>();
+        _rigidbody = GetComponent<Rigidbody>();
+        _explosion.Stop(true);
+        DeathOn = false;
+        rend = GetComponent<Renderer>();
+        rend_Gun_1 = Gun_1.GetComponent<Renderer>();
+        rend_Gun_2 = Gun_2.GetComponent<Renderer>();
+    }
+    private void FixedUpdate()
+    {
+        СurrentBuffTimer -= Time.deltaTime;
+        if (!DeathOn)
+        {
+            TargetRotation = Quaternion.Euler(-joystick.Vertical * ViewingAngle, joystick.Horizontal * ViewingAngle, 0.0f);
+            _transform.rotation = Quaternion.RotateTowards(_transform.rotation, TargetRotation, Time.deltaTime * InhibitionRotate);
+            _rigidbody.velocity = transform.forward * Speed;
+            PosStandard = new Vector3(_transform.position.x, _transform.position.y, _transform.position.z);
+        }
+        else
+        {
+            _transform.rotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
+            _transform.position = new Vector3(PosStandard.x, PosStandard.y, PosStandard.z);
+        }
+        if (BuffOn)
+        {
+
+        }
+        if (СurrentBuffTimer < 0.0f)
+        {
+            boxCollider.enabled = true;
+            BuffOn = false;
+            rend.material = _material;
+            rend_Gun_1.material = _material;
+            rend_Gun_2.material = _material;
+            _generator.BuffChance = 0.005f;
+        }
+    }
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.tag == "Asteroid")
+        {
+            _smert.GetComponent<smert>().smerty = true;
+            UnityEngine.Object.Destroy(gameObject, 0.5f);
+            _explosion.Play(true);
+            DeathOn = true;
+            _transform.rotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
+            _transform.position = new Vector3(PosStandard.x, PosStandard.y, PosStandard.z);
+            _rigidbody.constraints = RigidbodyConstraints.FreezeRotationX;
+            _rigidbody.constraints = RigidbodyConstraints.FreezeRotationY;
+            _rigidbody.constraints = RigidbodyConstraints.FreezeRotationZ;
+            _rigidbody.constraints = RigidbodyConstraints.FreezePosition;
+        }
+    }
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.tag == "Buff")
+        {
+            boxCollider.enabled = false;
+            _generator.BuffChance = 0.0f;
+            BuffOn = true;
+            rend.material = _alphaMaterial;
+            СurrentBuffTimer = BuffTimer;
+            rend_Gun_1.material = _alphaMaterial;
+            rend_Gun_2.material = _alphaMaterial;
+        }
+    }
+    public void Shoot()
+    {
+        Instantiate(laser, new Vector3(_transform.position.x + 0.351f, _transform.position.y + -0.0365f, _transform.position.z + -0.1493f), Quaternion.Euler(90.0f, 0.0f, 0.0f));
+        Instantiate(laser, new Vector3(_transform.position.x + -0.359f, _transform.position.y + -0.0365f, _transform.position.z + -0.1493f), Quaternion.Euler(90.0f, 0.0f, 0.0f));
+    }
+}

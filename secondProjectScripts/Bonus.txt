@@ -1,0 +1,81 @@
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Diagnostics;
+using System.Threading;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class Bonus : MonoBehaviour
+{
+    public GameObject Prefab;
+    private Transform _transform;
+    public float Lifetime;
+    public float Swelling;
+    public float Speed;
+    private float Difference;
+    private float _rotate_X;
+    private float _rotate_Y;
+    private float _rotate_Z;
+    private float ThrustRandomizer;
+    public GameObject _pers;
+    public float Thrust;
+    private Rigidbody _rigidbody;
+    private float Dist;
+    public float TargetDist;
+    public GameObject BonusExpPoint;
+    private bool BonusOn;
+    private bool Referens;
+    private Vector3 OldTrabs;
+    private SpaceshipController _spaceshipController;
+    private Text _text;
+    void Start()
+    {
+        _text = GameObject.FindObjectOfType<Text>().GetComponent<Text>();
+        _text.text = PlayerPrefs.GetInt("Record", int.Parse(_text.text)).ToString();
+        _spaceshipController = _pers.GetComponent<SpaceshipController>();
+        _rigidbody = GetComponent<Rigidbody>();
+        _transform = GetComponent<Transform>();
+        Destroy(Prefab, Lifetime);
+        _rotate_X = UnityEngine.Random.Range(-1.0f, 1.0f) * 360;
+        _rotate_Y = UnityEngine.Random.Range(-1.0f, 1.0f) * 360;
+        _rotate_Z = UnityEngine.Random.Range(-1.0f, 1.0f) * 360;
+        ThrustRandomizer = UnityEngine.Random.Range(-1.0f, 1.0f);
+    }
+    private void FixedUpdate()
+    {
+        if (!BonusOn)
+        {
+            if (!_spaceshipController.DeathOn)
+            {
+                _transform.localScale = new Vector3(_transform.localScale.x + Swelling, _transform.localScale.y + Swelling, _transform.localScale.z + Swelling);
+                _transform.position = new Vector3(_transform.position.x, _transform.position.y, _transform.position.z - Speed);
+                _transform.Rotate(new Vector3(_rotate_X, _rotate_Y, _rotate_Z) * Time.deltaTime / 4);
+                _rigidbody.AddForce(_rotate_Z * ThrustRandomizer / Thrust, _rotate_Y * ThrustRandomizer / Thrust, _rotate_X * ThrustRandomizer / Thrust, ForceMode.Impulse);
+            }
+        }
+        else
+        {
+            if (!_spaceshipController.DeathOn)
+            { 
+                Destroy(Prefab, 0.0f);
+            }
+        }
+    }
+    void OnTriggerEnter(Collider collider)
+    {
+        if (collider.gameObject.tag == "Player")
+        {
+            PlayerPrefs.SetInt("CurrentRecord", (PlayerPrefs.GetInt("CurrentRecord") + 1));
+            _text.text = PlayerPrefs.GetInt("Record").ToString();
+            UnityEngine.Debug.Log(PlayerPrefs.GetInt("Record") + "  ||  " + PlayerPrefs.GetInt("CurrentRecord"));
+            if (PlayerPrefs.GetInt("Record") < PlayerPrefs.GetInt("CurrentRecord"))
+            {
+                PlayerPrefs.SetInt("Record", PlayerPrefs.GetInt("CurrentRecord"));
+            }
+            Instantiate(BonusExpPoint, new Vector3(_transform.position.x, _transform.position.y, _transform.position.z), _transform.rotation);
+            OldTrabs = _transform.position;
+            BonusOn = true;
+        }
+    }
+}
