@@ -1,0 +1,30 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class crystalSpawner : MonoBehaviour
+{
+    public GameObject amethyst;
+    public GameObject aquamarine;
+    public GameObject emerald;
+    public GameObject ruby;
+    public GameObject topaz;
+    private GameObject[] _crystals = new GameObject[5];
+
+    void Start()
+    {
+        _crystals[0] = amethyst;
+        _crystals[1] = aquamarine;
+        _crystals[2] = emerald;
+        _crystals[3] = ruby;
+        _crystals[4] = topaz;
+    }
+
+    void Update()
+    {
+        if (Physics2D.RaycastAll(transform.position, Vector2.down, 0.85f).Length < 1)
+        {
+            Instantiate(_crystals[Random.Range(0, 5)], new Vector2(transform.position.x, transform.position.y - 0.6f), Quaternion.identity);
+        }
+    }
+}
